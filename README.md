@@ -1,3 +1,3 @@
 # E-commerce
 
-Pre entrega de trabajo final de javascript
+Entrega de trabajo final de javascript
