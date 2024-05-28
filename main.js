@@ -96,4 +96,34 @@ document.addEventListener("DOMContentLoaded", function() {
         });
         document.getElementById('total').textContent = `$${total.toFixed(2)}`;
     }
+
+    // Integrar PayPal
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: total.toFixed(2)
+                    }
+                }]
+            });
+        },
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                Swal.fire({
+                    title: "Pago completado",
+                    text: `Pago realizado por ${details.payer.name.given_name}`,
+                    icon: "success"
+                });
+                // Vaciar el carrito después del pago
+                while (carrito.firstChild) {
+                    carrito.removeChild(carrito.firstChild);
+                }
+                total = 0;
+                document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+                localStorage.removeItem('carrito');
+                localStorage.removeItem('total');
+            });
+        }
+    }).render('#paypal-button-container');
 });
