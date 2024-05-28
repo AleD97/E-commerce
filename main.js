@@ -4,6 +4,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const vaciarCarritoBtn = document.getElementById('vaciar-carrito');
     let total = 0;
 
+    // Cargar carrito desde localStorage
+    cargarCarritoDesdeLocalStorage();
+
     // Agregar evento click a cada botón de agregar al carrito
     productos.forEach(producto => {
         producto.querySelector('.agregar-carrito').addEventListener('click', agregarProducto);
@@ -20,7 +23,7 @@ document.addEventListener("DOMContentLoaded", function() {
         carrito.appendChild(nuevoProducto);
 
         total += precio;
-        document.getElementById('total').textContent = `$${total.toFixed(2)}`; // Aquí se agrega el símbolo de dólar ($)
+        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
 
         // Agregar evento click al botón de eliminar producto
         nuevoProducto.querySelector('.eliminar-producto').addEventListener('click', eliminarProducto);
@@ -36,6 +39,9 @@ document.addEventListener("DOMContentLoaded", function() {
         setTimeout(() => {
             swal.close();
         }, 2000);
+
+        // Guardar carrito en localStorage
+        guardarCarritoEnLocalStorage();
     }
 
     // Eliminar producto del carrito
@@ -44,12 +50,14 @@ document.addEventListener("DOMContentLoaded", function() {
         const nombreProductoAEliminar = productoAEliminar.textContent.split('-')[0].trim();
         const precioProductoAEliminar = parseFloat(productoAEliminar.textContent.split('-')[1].slice(2));
         
-        // Preguntar al usuario si realmente desea eliminar el producto
         if (confirm(`¿Estás seguro de que deseas eliminar "${nombreProductoAEliminar}" del carrito?`)) {
             productoAEliminar.remove();
 
             total -= precioProductoAEliminar;
-            document.getElementById('total').textContent = `$${total.toFixed(2)}`; // Aquí se agrega el símbolo de dólar ($)
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+
+            // Guardar carrito en localStorage
+            guardarCarritoEnLocalStorage();
         }
     }
 
@@ -59,7 +67,33 @@ document.addEventListener("DOMContentLoaded", function() {
             carrito.removeChild(carrito.firstChild);
         }
         total = 0;
-        document.getElementById('total').textContent = `$${total.toFixed(2)}`; // Aquí se agrega el símbolo de dólar ($)
-    });
-});
+        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
 
+        // Limpiar carrito en localStorage
+        localStorage.removeItem('carrito');
+    });
+
+    // Funciones para manejar localStorage
+    function guardarCarritoEnLocalStorage() {
+        const itemsCarrito = [];
+        carrito.querySelectorAll('li').forEach(item => {
+            const nombre = item.textContent.split(' - ')[0].trim();
+            const precio = parseFloat(item.textContent.split(' - ')[1].slice(1));
+            itemsCarrito.push({ nombre, precio });
+        });
+        localStorage.setItem('carrito', JSON.stringify(itemsCarrito));
+        localStorage.setItem('total', total.toFixed(2));
+    }
+
+    function cargarCarritoDesdeLocalStorage() {
+        const itemsCarrito = JSON.parse(localStorage.getItem('carrito')) || [];
+        total = parseFloat(localStorage.getItem('total')) || 0;
+        itemsCarrito.forEach(item => {
+            const nuevoProducto = document.createElement('li');
+            nuevoProducto.innerHTML = `${item.nombre} - $${item.precio} <button class="eliminar-producto">Eliminar</button>`;
+            carrito.appendChild(nuevoProducto);
+            nuevoProducto.querySelector('.eliminar-producto').addEventListener('click', eliminarProducto);
+        });
+        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    }
+});
